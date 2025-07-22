@@ -1,0 +1,157 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Serpientes y Escaleras</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background: #f0f0f0;
+    }
+    #board {
+      display: grid;
+      grid-template-columns: repeat(10, 50px);
+      grid-template-rows: repeat(10, 50px);
+      margin: 20px auto;
+      width: 500px;
+    }
+    .cell {
+      border: 1px solid #aaa;
+      height: 50px;
+      line-height: 50px;
+      font-size: 12px;
+      position: relative;
+    }
+    .snake-cell {
+      background-color: #ffdddd;
+      color: #a00;
+      font-weight: bold;
+    }
+    .ladder-cell {
+      background-color: #ddffdd;
+      color: #0a0;
+      font-weight: bold;
+    }
+    .player1, .player2 {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      position: absolute;
+      bottom: 5px;
+    }
+    .player1 { background: red; left: 5px; }
+    .player2 { background: blue; right: 5px; }
+    #controls {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎲 Serpientes y Escaleras 🐍</h1>
+  <div id="board"></div>
+  <div id="controls">
+    <p>Turno de: <span id="currentPlayer">Jugador 1</span></p>
+    <button onclick="rollDice()">Tirar Dado</button>
+    <p>Resultado del dado: <span id="diceResult">-</span></p>
+  </div>
+
+  <script>
+    const board = document.getElementById("board");
+    const diceResult = document.getElementById("diceResult");
+    const currentPlayerSpan = document.getElementById("currentPlayer");
+
+    const snakes = {
+      16: 6, 47: 26, 49: 11, 56: 53, 62: 19,
+      64: 60, 87: 24, 93: 73, 95: 75, 98: 78
+    };
+
+    const ladders = {
+      1: 38, 4: 14, 9: 31, 21: 42, 28: 84,
+      36: 44, 51: 67, 71: 91, 80: 100
+    };
+
+    const cells = [];
+    let positions = [1, 1];
+    let currentPlayer = 0;
+
+    function createBoard() {
+      for (let i = 100; i >= 1; i--) {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.id = `cell-${i}`;
+        cell.textContent = i;
+
+        if (snakes[i]) {
+          cell.classList.add("snake-cell");
+          cell.textContent += " 🐍";
+        }
+
+        if (ladders[i]) {
+          cell.classList.add("ladder-cell");
+          cell.textContent += " 🪜";
+        }
+
+        board.appendChild(cell);
+        cells[i] = cell;
+      }
+      updatePlayers();
+    }
+
+    function rollDice() {
+      const roll = Math.floor(Math.random() * 6) + 1;
+      diceResult.textContent = roll;
+
+      let newPosition = positions[currentPlayer] + roll;
+      if (newPosition > 100) newPosition = positions[currentPlayer];
+
+      if (snakes[newPosition]) {
+        newPosition = snakes[newPosition];
+      } else if (ladders[newPosition]) {
+        newPosition = ladders[newPosition];
+      }
+
+      positions[currentPlayer] = newPosition;
+      updatePlayers();
+
+      if (newPosition === 100) {
+        alert(`¡Jugador ${currentPlayer + 1} ha ganado!`);
+        resetGame();
+      } else {
+        currentPlayer = 1 - currentPlayer;
+        currentPlayerSpan.textContent = `Jugador ${currentPlayer + 1}`;
+      }
+    }
+
+    function updatePlayers() {
+      cells.forEach(cell => {
+        if (cell) {
+          cell.innerHTML = cell.textContent.split(" ")[0];
+          if (snakes[cell.id.split("-")[1]]) {
+            cell.innerHTML += " 🐍";
+          } else if (ladders[cell.id.split("-")[1]]) {
+            cell.innerHTML += " 🪜";
+          }
+        }
+      });
+
+      positions.forEach((pos, index) => {
+        const player = document.createElement("div");
+        player.className = `player${index + 1}`;
+        cells[pos].appendChild(player);
+      });
+    }
+
+    function resetGame() {
+      positions = [1, 1];
+      currentPlayer = 0;
+      currentPlayerSpan.textContent = "Jugador 1";
+      updatePlayers();
+    }
+
+    createBoard();
+  </script>
+</body>
+</html>
